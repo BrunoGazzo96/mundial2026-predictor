@@ -1,49 +1,49 @@
 equipo,grupo,confederacion,ranking_fifa,mundiales_previos,es_sede
-Argentina,A,CONMEBOL,1,18,0
-Francia,B,UEFA,2,16,0
-España,C,UEFA,3,16,0
-Inglaterra,D,UEFA,4,16,0
-Brasil,E,CONMEBOL,5,22,0
-Portugal,F,UEFA,6,9,0
-Países Bajos,G,UEFA,7,11,0
-Bélgica,H,UEFA,8,14,0
-Alemania,I,UEFA,9,20,0
-Uruguay,J,CONMEBOL,10,14,0
-Colombia,K,CONMEBOL,11,7,0
-Marruecos,L,CAF,12,6,0
-Italia,A,UEFA,13,18,0
-Japón,B,AFC,14,7,0
-Croacia,C,UEFA,15,6,0
-México,D,CONCACAF,16,17,1
-Senegal,E,CAF,17,3,0
-Estados Unidos,F,CONCACAF,18,11,1
-Dinamarca,G,UEFA,19,6,0
-Ecuador,H,CONMEBOL,20,4,0
-Austria,I,UEFA,21,3,0
-Suiza,J,UEFA,22,12,0
-Corea del Sur,K,AFC,23,11,0
-Australia,L,AFC,24,6,0
-Turquía,A,UEFA,25,2,0
-Polonia,B,UEFA,26,9,0
-Serbia,C,UEFA,27,3,0
-Ucrania,D,UEFA,28,2,0
-Irán,E,AFC,29,6,0
-Arabia Saudita,F,AFC,30,6,0
-Ghana,G,CAF,31,4,0
-Camerún,H,CAF,32,8,0
-Canadá,I,CONCACAF,33,3,1
-Nigeria,J,CAF,34,7,0
-Costa Rica,K,CONCACAF,35,6,0
-Venezuela,L,CONMEBOL,36,0,0
-Escocia,A,UEFA,37,2,0
-Rumania,B,UEFA,38,8,0
-Eslovenia,C,UEFA,39,1,0
-República Checa,D,UEFA,40,5,0
-Irak,E,AFC,41,1,0
-Uzbekistán,F,AFC,42,0,0
-Egipto,G,CAF,43,3,0
-Costa de Marfil,H,CAF,44,4,0
-Panamá,I,CONCACAF,45,2,0
-Bolivia,J,CONMEBOL,46,3,0
-Paraguay,K,CONMEBOL,47,10,0
-Nueva Zelanda,L,OFC,48,2,0
+México,A,CONCACAF,15,17,1
+Sudáfrica,A,CAF,60,3,0
+Corea del Sur,A,AFC,25,11,0
+Chequia,A,UEFA,41,9,0
+Canadá,B,CONCACAF,30,2,1
+Suiza,B,UEFA,19,12,0
+Catar,B,AFC,55,1,0
+Bosnia Herzegovina,B,UEFA,65,1,0
+Brasil,C,CONMEBOL,6,22,0
+Marruecos,C,CAF,8,6,0
+Haití,C,CONCACAF,83,1,0
+Escocia,C,UEFA,43,8,0
+Estados Unidos,D,CONCACAF,16,11,1
+Paraguay,D,CONMEBOL,40,10,0
+Australia,D,AFC,27,6,0
+Turquía,D,UEFA,22,2,0
+Alemania,E,UEFA,10,20,0
+Curazao,E,CONCACAF,82,0,0
+Costa de Marfil,E,CAF,34,4,0
+Ecuador,E,CONMEBOL,23,4,0
+Países Bajos,F,UEFA,7,11,0
+Japón,F,AFC,18,7,0
+Suecia,F,UEFA,38,12,0
+Túnez,F,CAF,44,6,0
+Bélgica,G,UEFA,9,14,0
+Egipto,G,CAF,29,3,0
+Irán,G,AFC,21,6,0
+Nueva Zelanda,G,OFC,85,2,0
+España,H,UEFA,2,16,0
+Cabo Verde,H,CAF,69,0,0
+Arabia Saudita,H,AFC,61,6,0
+Uruguay,H,CONMEBOL,17,14,0
+Francia,I,UEFA,1,16,0
+Senegal,I,CAF,14,3,0
+Noruega,I,UEFA,31,3,0
+Irak,I,AFC,57,1,0
+Argentina,J,CONMEBOL,3,18,0
+Argelia,J,CAF,28,4,0
+Austria,J,UEFA,24,7,0
+Jordania,J,AFC,63,0,0
+Portugal,K,UEFA,5,9,0
+Congo DR,K,CAF,46,2,0
+Uzbekistán,K,AFC,50,0,0
+Colombia,K,CONMEBOL,13,7,0
+Inglaterra,L,UEFA,4,16,0
+Croacia,L,UEFA,11,6,0
+Ghana,L,CAF,74,4,0
+Panamá,L,CONCACAF,33,2,0
