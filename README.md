@@ -38,4 +38,4 @@ streamlit run app/streamlit_app.py
 
 ## Autor
 
-Bruno Gazzo — [LinkedIn](https://linkedin.com/in/brunogazzo](https://www.linkedin.com/in/bruno-gazzo-909161195/)
+Bruno Gazzo — [LinkedIn](https://www.linkedin.com/in/bruno-gazzo-909161195)
