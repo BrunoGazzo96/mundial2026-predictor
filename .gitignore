@@ -23,10 +23,14 @@ env/
 data/raw/resultados_historicos.csv
 data/raw/ranking_fifa_historico.csv
 data/processed/features_train.csv
-data/processed/features_2026.csv
-outputs/predicciones_2026.csv
 
-# El CSV de equipos 2026 (elaboración propia, chico) SÍ se versiona
+# Outputs que SÍ van al repo (necesarios para la app)
+# data/processed/features_2026.csv  → se versiona
+# outputs/predicciones_2026.csv     → se versiona
+# outputs/model_gbm.joblib          → se versiona
+
+# Claude Code memory (local only)
+.claude/
 
 # IDE
 .vscode/
@@ -38,9 +42,8 @@ outputs/predicciones_2026.csv
 .DS_Store
 Thumbs.db
 
-# Models
+# Models grandes (el GBM de este proyecto SÍ se versiona — ver arriba)
 *.pkl
-*.joblib
 
 # Logs
 *.log
