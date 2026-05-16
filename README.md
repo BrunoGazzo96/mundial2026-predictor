@@ -7,7 +7,7 @@ Análisis predictivo del Mundial 2026 usando datos históricos de 45.000+ partid
 - Análisis exploratorio de mundiales 1930–2022
 - Modelo GBM entrenado sobre resultados históricos de fútbol internacional
 - Simulación del torneo completo (10.000 iteraciones Monte Carlo)
-- App interactiva deployada: _link próximamente_
+- App interactiva deployada: [mundial2026-predictor.streamlit.app](https://mundial2026-predictor.streamlit.app)
 
 ## Stack
 
