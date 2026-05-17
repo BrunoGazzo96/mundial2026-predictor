@@ -272,8 +272,8 @@ if page == "Dashboard":
       </span>
       <p style="color:#cdd6f4;margin:6px 0 0;font-size:13px;line-height:1.6;">
         Predicciones calculadas el <b>16 de mayo de 2026</b>, antes del inicio del Mundial
-        (10 jun 2026). El modelo hizo su apuesta antes de que arranque el primer partido —
-        los resultados no se actualizan con el avance del torneo.
+        (11 jun 2026). El modelo hizo su apuesta antes de que arranque el primer partido —
+        los resultados actualizarán una vez terminada la fase de grupos.
       </p>
     </div>
     """, unsafe_allow_html=True)
