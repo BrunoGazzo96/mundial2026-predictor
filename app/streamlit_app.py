@@ -338,7 +338,10 @@ if page == "Dashboard":
             ),
             paper_bgcolor="rgba(0,0,0,0)",
             font=dict(color="#8d99ae"),
-            title_font=dict(color="#eef2ff", size=14),
+            title=dict(
+                text="Probabilidad de título por país",
+                font=dict(color="#eef2ff", size=14),
+            ),
         )
         st.plotly_chart(fig_map, use_container_width=True)
 
@@ -470,7 +473,7 @@ elif page == "Simulador de partidos":
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
             font=dict(color="#8d99ae"),
-            title_font=dict(color="#eef2ff", size=14),
+            title=dict(font=dict(color="#eef2ff", size=14)),
         )
         st.plotly_chart(fig_sim, use_container_width=True)
 
@@ -576,7 +579,7 @@ elif page == "Grupos":
         paper_bgcolor="rgba(0,0,0,0)",
         coloraxis_showscale=False,
         font=dict(color="#8d99ae"),
-        title_font=dict(color="#eef2ff", size=14),
+        title=dict(font=dict(color="#eef2ff", size=14)),
         xaxis=dict(gridcolor="rgba(0,0,0,0)", color="#8d99ae"),
         yaxis=dict(gridcolor="rgba(255,255,255,0.06)", color="#8d99ae"),
     )
