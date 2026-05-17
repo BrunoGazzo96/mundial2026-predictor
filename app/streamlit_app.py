@@ -17,7 +17,42 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── ISO codes para el mapa ──────────────────────────────────────────────────
+# ── CSS ──────────────────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+html, body, [data-testid="stAppViewContainer"] {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+h1 { font-weight: 800; letter-spacing: -0.04em; }
+h2 { font-weight: 700; letter-spacing: -0.02em; }
+h3 { font-weight: 600; }
+
+[data-testid="stSidebar"] {
+    background: #080c14;
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+    color: #8d99ae;
+    font-size: 0.82rem;
+    line-height: 1.8;
+}
+
+hr { border-color: rgba(255,255,255,0.07) !important; }
+
+[data-testid="stDataFrame"] {
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Quitar el delta arrow de st.metric */
+[data-testid="stMetricDelta"] svg { display: none; }
+[data-testid="stMetricDelta"] { color: #8d99ae !important; font-size: 0.78rem !important; }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ── ISO codes ────────────────────────────────────────────────────────────────
 ISO_MAP = {
     "Argentina": "ARG", "Brasil": "BRA", "Francia": "FRA", "España": "ESP",
     "Inglaterra": "GBR", "Portugal": "PRT", "Países Bajos": "NLD",
@@ -46,7 +81,7 @@ RONDAS_ES = {
 }
 
 
-# ── Carga de datos (cacheada) ───────────────────────────────────────────────
+# ── Carga de datos ───────────────────────────────────────────────────────────
 @st.cache_data
 def load_predictions():
     p = ROOT / "outputs" / "predicciones_2026.csv"
@@ -66,7 +101,6 @@ def load_features_2026():
 
 @st.cache_resource
 def load_probs_dict():
-    """Carga el modelo y pre-calcula probabilidades de todos los enfrentamientos."""
     model_path = ROOT / "outputs" / "model_gbm.joblib"
     feat_path  = ROOT / "data" / "processed" / "features_2026.csv"
     if not model_path.exists() or not feat_path.exists():
@@ -80,21 +114,60 @@ def load_probs_dict():
     return precompute_match_probs(model, features_2026)
 
 
-# ── Helpers ─────────────────────────────────────────────────────────────────
+# ── Helpers ──────────────────────────────────────────────────────────────────
 def pct(val: float) -> str:
     return f"{val * 100:.1f}%"
 
 
-def fmt_table(df: pd.DataFrame, cols: list) -> pd.DataFrame:
-    out = df.copy()
-    for c in cols:
-        out[c] = out[c].map(pct)
-    return out
+def stat_card(label: str, team: str, value: str, accent: str) -> str:
+    return f"""
+    <div style="
+        background: linear-gradient(145deg, {accent}1a 0%, {accent}08 100%);
+        border: 1px solid {accent}40;
+        border-radius: 14px;
+        padding: 20px 14px;
+        text-align: center;
+        min-height: 110px;
+        display: flex; flex-direction: column; justify-content: center; gap: 5px;
+    ">
+        <span style="font-size:10px; color:{accent}cc; text-transform:uppercase;
+                     letter-spacing:.12em; font-weight:700;">{label}</span>
+        <span style="font-size:18px; font-weight:800; color:#eef2ff; line-height:1.2;">{team}</span>
+        <span style="font-size:24px; font-weight:800; color:{accent}; line-height:1;">{value}</span>
+    </div>
+    """
 
 
-# ── Sidebar ─────────────────────────────────────────────────────────────────
+def prob_bar(team_a: str, team_b: str, p_a: float, p_e: float, p_b: float) -> str:
+    """Barra proporcional de probabilidades para el simulador."""
+    return f"""
+    <div style="display:flex; gap:10px; margin:18px 0 24px;">
+        <div style="flex:{p_a:.3f}; background:linear-gradient(135deg,#1b5e20,#2e7d32);
+                    border-radius:12px; padding:22px 12px; text-align:center; min-width:80px;">
+            <div style="font-size:10px; color:#a5d6a7; text-transform:uppercase;
+                        letter-spacing:.1em; font-weight:700; margin-bottom:6px;">{team_a}</div>
+            <div style="font-size:32px; font-weight:800; color:#fff;">{p_a*100:.1f}%</div>
+        </div>
+        <div style="flex:{p_e:.3f}; background:linear-gradient(135deg,#1e2130,#2a2f45);
+                    border-radius:12px; padding:22px 12px; text-align:center; min-width:80px;
+                    border:1px solid rgba(255,255,255,0.08);">
+            <div style="font-size:10px; color:#8d99ae; text-transform:uppercase;
+                        letter-spacing:.1em; font-weight:700; margin-bottom:6px;">Empate</div>
+            <div style="font-size:32px; font-weight:800; color:#cdd6f4;">{p_e*100:.1f}%</div>
+        </div>
+        <div style="flex:{p_b:.3f}; background:linear-gradient(135deg,#0d47a1,#1565c0);
+                    border-radius:12px; padding:22px 12px; text-align:center; min-width:80px;">
+            <div style="font-size:10px; color:#90caf9; text-transform:uppercase;
+                        letter-spacing:.1em; font-weight:700; margin-bottom:6px;">{team_b}</div>
+            <div style="font-size:32px; font-weight:800; color:#fff;">{p_b*100:.1f}%</div>
+        </div>
+    </div>
+    """
+
+
+# ── Sidebar ──────────────────────────────────────────────────────────────────
 st.sidebar.title("🏆 Mundial 2026")
-st.sidebar.caption("Análisis predictivo basado en 45.000+ partidos históricos")
+st.sidebar.caption("Análisis predictivo basado en 49.000+ partidos históricos")
 page = st.sidebar.radio(
     "Navegación",
     ["Dashboard", "Simulador de partidos", "Grupos", "EDA Highlights"],
@@ -107,19 +180,19 @@ st.sidebar.markdown(
     "**Datos:** Kaggle · FIFA  \n"
 )
 
-# ── Carga ───────────────────────────────────────────────────────────────────
 predictions = load_predictions()
 teams_df    = load_teams()
 probs_dict  = load_probs_dict()
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PÁGINA 1: DASHBOARD
 # ══════════════════════════════════════════════════════════════════════════════
 if page == "Dashboard":
-    st.title("🏆 Mundial 2026 — Predictor")
+    st.title("Mundial 2026 — Predictor")
     st.markdown(
-        "Simulación de **10.000 torneos** completos usando un modelo "
-        "GradientBoosting entrenado sobre partidos históricos de alta competencia."
+        "Simulación de **10.000 torneos** completos con un modelo "
+        "GradientBoosting entrenado sobre resultados históricos de alta competencia."
     )
 
     if predictions is None:
@@ -128,26 +201,23 @@ if page == "Dashboard":
 
     pred = predictions.merge(teams_df[["equipo", "confederacion", "grupo"]], on="equipo")
 
-    # Métricas clave
-    top1, top2, top3, top4 = pred.head(4)["equipo"].values
-    c1, c2, c3, c4 = st.columns(4)
-    for col, eq, label in [
-        (c1, top1, "🥇 Favorito"),
-        (c2, top2, "🥈 2do"),
-        (c3, top3, "🥉 3ro"),
-        (c4, top4, "4to"),
-    ]:
-        row = pred[pred["equipo"] == eq].iloc[0]
-        col.metric(label, eq, f"{row['campeon']*100:.1f}% prob. título")
+    # Cards top 4
+    ACCENTS = ["#FFD700", "#9E9E9E", "#CD7F32", "#1565C0"]
+    LABELS  = ["1er favorito", "2do favorito", "3er favorito", "4to favorito"]
+    cols_cards = st.columns(4)
+    for i, (col, (_, row)) in enumerate(zip(cols_cards, pred.head(4).iterrows())):
+        with col:
+            st.markdown(
+                stat_card(LABELS[i], row["equipo"], pct(row["campeon"]), ACCENTS[i]),
+                unsafe_allow_html=True,
+            )
 
     st.divider()
-
     col_left, col_right = st.columns([1.3, 1])
 
     with col_left:
-        # Bar chart top 15
         top15 = pred.head(15).copy()
-        top15["color"] = top15["confederacion"].map(CONF_COLORS).fillna("#607D8B")
+        top15["color"]     = top15["confederacion"].map(CONF_COLORS).fillna("#607D8B")
         top15["pct_label"] = top15["campeon"].map(pct)
 
         fig_bar = go.Figure(go.Bar(
@@ -155,22 +225,43 @@ if page == "Dashboard":
             y=top15["equipo"],
             orientation="h",
             marker_color=top15["color"],
+            marker_line_width=0,
             text=top15["pct_label"],
             textposition="outside",
+            textfont=dict(size=11, color="#cdd6f4"),
         ))
+
+        # Leyenda de confederaciones
+        for conf, color in CONF_COLORS.items():
+            if conf in top15["confederacion"].values:
+                fig_bar.add_trace(go.Bar(
+                    x=[None], y=[None], name=conf,
+                    marker_color=color, showlegend=True,
+                ))
+
         fig_bar.update_layout(
-            title="Top 15 candidatos al título",
-            xaxis_title="Probabilidad de campeonato (%)",
-            yaxis=dict(autorange="reversed"),
-            height=480,
-            margin=dict(l=10, r=60, t=40, b=10),
+            title=dict(text="Top 15 candidatos al título", font=dict(size=15, color="#eef2ff")),
+            xaxis=dict(
+                title="Probabilidad de campeonato (%)",
+                gridcolor="rgba(255,255,255,0.06)",
+                zerolinecolor="rgba(255,255,255,0.1)",
+                color="#8d99ae",
+            ),
+            yaxis=dict(autorange="reversed", gridcolor="rgba(0,0,0,0)", color="#cdd6f4"),
+            height=490,
+            margin=dict(l=10, r=80, t=44, b=10),
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#8d99ae", size=11),
+            legend=dict(
+                orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
+                font=dict(size=10), bgcolor="rgba(0,0,0,0)",
+            ),
+            barmode="overlay",
         )
         st.plotly_chart(fig_bar, use_container_width=True)
 
     with col_right:
-        # Mapa mundial
         pred["iso"] = pred["equipo"].map(ISO_MAP)
         fig_map = px.choropleth(
             pred,
@@ -182,10 +273,23 @@ if page == "Dashboard":
             title="Probabilidad de título por país",
         )
         fig_map.update_layout(
-            height=380,
+            height=390,
             margin=dict(l=0, r=0, t=40, b=0),
-            coloraxis_colorbar=dict(title="Prob. título", tickformat=".0%"),
-            geo=dict(showframe=False, showcoastlines=True),
+            coloraxis_colorbar=dict(
+                title="Prob.", tickformat=".0%",
+                bgcolor="rgba(0,0,0,0)", tickcolor="#8d99ae", titlefont=dict(color="#8d99ae"),
+            ),
+            geo=dict(
+                showframe=False, showcoastlines=True,
+                bgcolor="rgba(0,0,0,0)",
+                landcolor="#1e2540",
+                oceancolor="#0d1117",
+                showocean=True,
+                coastlinecolor="rgba(255,255,255,0.12)",
+            ),
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#8d99ae"),
+            title_font=dict(color="#eef2ff", size=14),
         )
         st.plotly_chart(fig_map, use_container_width=True)
 
@@ -194,16 +298,31 @@ if page == "Dashboard":
 
     rondas_cols = ["clasifica", "16avos", "octavos", "cuartos", "semis", "final", "campeon"]
     display = pred[["equipo", "confederacion", "grupo"] + rondas_cols].copy()
-    display = display.rename(columns=RONDAS_ES)
-    for c in RONDAS_ES.values():
-        if c in display.columns:
-            display[c] = display[c].map(pct)
+
+    # Mantener como float *100 para que el sorting sea numérico
+    for c in rondas_cols:
+        display[c] = (display[c] * 100).round(1)
+
+    display = display.rename(columns={
+        **RONDAS_ES, "equipo": "Equipo", "confederacion": "Conf.", "grupo": "Gr.",
+    })
+
+    col_cfg = {
+        "Clasifica": st.column_config.ProgressColumn("Clasifica", format="%.1f%%", min_value=0, max_value=100),
+        "16avos":    st.column_config.ProgressColumn("16avos",    format="%.1f%%", min_value=0, max_value=100),
+        "Octavos":   st.column_config.ProgressColumn("Octavos",   format="%.1f%%", min_value=0, max_value=100),
+        "Cuartos":   st.column_config.ProgressColumn("Cuartos",   format="%.1f%%", min_value=0, max_value=100),
+        "Semis":     st.column_config.ProgressColumn("Semis",     format="%.1f%%", min_value=0, max_value=100),
+        "Final":     st.column_config.ProgressColumn("Final",     format="%.1f%%", min_value=0, max_value=100),
+        "Campeón":   st.column_config.ProgressColumn("Campeón",   format="%.1f%%", min_value=0, max_value=15),
+    }
 
     st.dataframe(
         display.sort_values("Campeón", ascending=False),
         use_container_width=True,
         hide_index=True,
         height=500,
+        column_config=col_cfg,
     )
 
 
@@ -211,18 +330,22 @@ if page == "Dashboard":
 # PÁGINA 2: SIMULADOR
 # ══════════════════════════════════════════════════════════════════════════════
 elif page == "Simulador de partidos":
-    st.title("⚽ Simulador de partidos")
-    st.markdown("Elegí dos selecciones y el modelo predice las probabilidades.")
+    st.title("Simulador de partidos")
+    st.markdown("Elegí dos selecciones y el modelo estima las probabilidades del enfrentamiento.")
 
     all_teams = sorted(teams_df["equipo"].tolist())
 
-    col1, col_vs, col2 = st.columns([2, 0.5, 2])
+    col1, col_vs, col2 = st.columns([5, 1, 5])
     with col1:
-        team_a = st.selectbox("Selección A", all_teams, index=all_teams.index("Argentina"))
+        team_a = st.selectbox("Selección local", all_teams, index=all_teams.index("Argentina"))
     with col_vs:
-        st.markdown("<br><h2 style='text-align:center'>VS</h2>", unsafe_allow_html=True)
+        st.markdown(
+            "<div style='text-align:center; padding-top:28px; color:#8d99ae; "
+            "font-weight:700; font-size:14px;'>VS</div>",
+            unsafe_allow_html=True,
+        )
     with col2:
-        team_b = st.selectbox("Selección B", all_teams, index=all_teams.index("Francia"))
+        team_b = st.selectbox("Selección visitante", all_teams, index=all_teams.index("Francia"))
 
     if team_a == team_b:
         st.warning("Elegí dos selecciones diferentes.")
@@ -234,68 +357,43 @@ elif page == "Simulador de partidos":
 
     probs = probs_dict.get((team_a, team_b))
     if probs is None:
-        st.error(f"No hay datos para {team_a} vs {team_b}.")
+        st.error(f"No hay datos pre-calculados para {team_a} vs {team_b}.")
         st.stop()
 
     # sklearn: clase 0=B gana, 1=empate, 2=A gana
     p_b, p_e, p_a = float(probs[0]), float(probs[1]), float(probs[2])
 
-    st.divider()
+    st.markdown(prob_bar(team_a, team_b, p_a, p_e, p_b), unsafe_allow_html=True)
 
-    # Probabilidades principales
-    c1, c2, c3 = st.columns(3)
-    c1.metric(f"🏅 Gana {team_a}", pct(p_a))
-    c2.metric("🤝 Empate", pct(p_e))
-    c3.metric(f"🏅 Gana {team_b}", pct(p_b))
-
-    # Gauge doble
-    fig_gauge = go.Figure()
-    fig_gauge.add_trace(go.Bar(
-        x=[p_a * 100, p_e * 100, p_b * 100],
-        y=[team_a, "Empate", team_b],
-        orientation="h",
-        marker_color=["#2E7D32", "#9E9E9E", "#1565C0"],
-        text=[pct(p_a), pct(p_e), pct(p_b)],
-        textposition="outside",
-    ))
-    fig_gauge.update_layout(
-        height=200,
-        margin=dict(l=10, r=60, t=10, b=10),
-        xaxis=dict(range=[0, 100], title="Probabilidad (%)"),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-    )
-    st.plotly_chart(fig_gauge, use_container_width=True)
-
-    # Info adicional de los equipos
-    def team_row(name):
+    # Info de los equipos
+    def team_info(name):
         row = teams_df[teams_df["equipo"] == name]
-        if row.empty:
-            return {}
-        return row.iloc[0].to_dict()
+        return row.iloc[0].to_dict() if not row.empty else {}
 
-    info_a, info_b = team_row(team_a), team_row(team_b)
+    info_a, info_b = team_info(team_a), team_info(team_b)
     if info_a and info_b:
-        st.divider()
+        pred_row_a = predictions[predictions["equipo"] == team_a].iloc[0] if predictions is not None else None
+        pred_row_b = predictions[predictions["equipo"] == team_b].iloc[0] if predictions is not None else None
+
         ca, cb = st.columns(2)
         with ca:
             st.markdown(f"**{team_a}**")
-            st.write(f"Confederación: {info_a['confederacion']}")
-            st.write(f"Ranking FIFA: #{info_a['ranking_fifa']}")
-            st.write(f"Mundiales previos: {info_a['mundiales_previos']}")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Confederación", info_a["confederacion"])
+            c2.metric("Ranking FIFA", f"#{info_a['ranking_fifa']}")
+            c3.metric("Prob. título", pct(pred_row_a["campeon"]) if pred_row_a is not None else "—")
         with cb:
             st.markdown(f"**{team_b}**")
-            st.write(f"Confederación: {info_b['confederacion']}")
-            st.write(f"Ranking FIFA: #{info_b['ranking_fifa']}")
-            st.write(f"Mundiales previos: {info_b['mundiales_previos']}")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Confederación", info_b["confederacion"])
+            c2.metric("Ranking FIFA", f"#{info_b['ranking_fifa']}")
+            c3.metric("Prob. título", pct(pred_row_b["campeon"]) if pred_row_b is not None else "—")
 
     st.divider()
-
-    # Simulación N veces
     st.subheader("Simulación de múltiples partidos")
-    n_sim = st.slider("Cantidad de partidos a simular", 100, 5000, 1000, step=100)
+    n_sim = st.slider("Cantidad de partidos", 100, 5000, 1000, step=100)
 
-    if st.button("▶ Simular", type="primary"):
+    if st.button("Simular", type="primary"):
         resultados_sim = np.random.choice(
             [f"Gana {team_a}", "Empate", f"Gana {team_b}"],
             size=n_sim,
@@ -305,21 +403,28 @@ elif page == "Simulador de partidos":
         conteo.columns = ["resultado", "count"]
         conteo["pct"] = conteo["count"] / n_sim
 
+        color_map = {
+            f"Gana {team_a}": "#2E7D32",
+            "Empate":         "#546E7A",
+            f"Gana {team_b}": "#1565C0",
+        }
         fig_sim = px.bar(
-            conteo,
-            x="resultado", y="count",
+            conteo, x="resultado", y="count",
             text=conteo["pct"].map(pct),
-            title=f"Resultado de {n_sim:,} simulaciones: {team_a} vs {team_b}",
+            title=f"{n_sim:,} simulaciones: {team_a} vs {team_b}",
             color="resultado",
-            color_discrete_map={
-                f"Gana {team_a}": "#2E7D32",
-                "Empate": "#9E9E9E",
-                f"Gana {team_b}": "#1565C0",
-            },
+            color_discrete_map=color_map,
         )
-        fig_sim.update_traces(textposition="outside")
-        fig_sim.update_layout(showlegend=False, yaxis_title="Partidos",
-                              plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+        fig_sim.update_traces(textposition="outside", marker_line_width=0, textfont=dict(size=13))
+        fig_sim.update_layout(
+            showlegend=False,
+            yaxis_title="Partidos",
+            xaxis_title="",
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#8d99ae"),
+            title_font=dict(color="#eef2ff", size=14),
+        )
         st.plotly_chart(fig_sim, use_container_width=True)
 
 
@@ -327,10 +432,10 @@ elif page == "Simulador de partidos":
 # PÁGINA 3: GRUPOS
 # ══════════════════════════════════════════════════════════════════════════════
 elif page == "Grupos":
-    st.title("🗂️ Grupos del Mundial 2026")
+    st.title("Grupos del Mundial 2026")
     st.markdown(
-        "Probabilidad de cada equipo de clasificar a los **16avos de final** "
-        "(top-2 garantizados + mejores 8 terceros)."
+        "Probabilidad de clasificar a **16avos de final** "
+        "(top-2 de cada grupo + mejores 8 terceros)."
     )
 
     if predictions is None:
@@ -355,55 +460,77 @@ elif page == "Grupos":
                     x=g_df["clasifica"] * 100,
                     y=g_df["equipo"],
                     orientation="h",
-                    marker_color=[
-                        CONF_COLORS.get(c, "#607D8B") for c in g_df["confederacion"]
-                    ],
+                    marker_color=[CONF_COLORS.get(c, "#607D8B") for c in g_df["confederacion"]],
+                    marker_line_width=0,
                     text=g_df["clasifica"].map(pct),
                     textposition="outside",
+                    textfont=dict(size=10, color="#cdd6f4"),
                 ))
-                fig_g.add_vline(x=50, line_dash="dash", line_color="red", opacity=0.4)
+                fig_g.add_vline(x=50, line_dash="dash", line_color="#ef5350", opacity=0.5)
                 fig_g.update_layout(
-                    height=160,
-                    margin=dict(l=5, r=50, t=5, b=5),
-                    xaxis=dict(range=[0, 115], title=""),
-                    yaxis=dict(title=""),
+                    height=165,
+                    margin=dict(l=5, r=55, t=5, b=5),
+                    xaxis=dict(range=[0, 120], title="", gridcolor="rgba(255,255,255,0.05)", color="#8d99ae"),
+                    yaxis=dict(title="", color="#cdd6f4"),
                     plot_bgcolor="rgba(0,0,0,0)",
                     paper_bgcolor="rgba(0,0,0,0)",
                     showlegend=False,
                 )
                 st.plotly_chart(fig_g, use_container_width=True, key=f"grupo_{grupo}")
 
-                # Mini tabla
                 mini = g_df[["equipo", "clasifica", "campeon"]].copy()
-                mini["clasifica"] = mini["clasifica"].map(pct)
-                mini["campeon"]   = mini["campeon"].map(pct)
-                mini.columns      = ["Equipo", "Clasifica", "Título"]
-                st.dataframe(mini, hide_index=True, use_container_width=True)
+                mini["clasifica"] = (mini["clasifica"] * 100).round(1)
+                mini["campeon"]   = (mini["campeon"]   * 100).round(1)
+                mini.columns      = ["Equipo", "Clasifica %", "Título %"]
+                st.dataframe(
+                    mini, hide_index=True, use_container_width=True,
+                    column_config={
+                        "Clasifica %": st.column_config.ProgressColumn(
+                            "Clasifica %", format="%.1f%%", min_value=0, max_value=100,
+                        ),
+                        "Título %": st.column_config.ProgressColumn(
+                            "Título %", format="%.1f%%", min_value=0, max_value=15,
+                        ),
+                    },
+                )
 
         if row_idx + 4 < len(grupos_list):
             st.divider()
 
-    # Ranking de grupos por dificultad
     st.divider()
-    st.subheader("Ranking de grupos por dificultad media")
-    st.caption("Promedio de ranking FIFA de los 4 equipos de cada grupo (menor = más difícil)")
+    st.subheader("Dificultad por grupo")
+    st.caption("Ranking FIFA promedio de los 4 equipos — menor número = grupo más difícil")
 
-    dif = teams_df.groupby("grupo").agg(
-        ranking_medio=("ranking_fifa", "mean"),
-        equipos=("equipo", lambda x: " · ".join(x)),
-    ).reset_index().sort_values("ranking_medio")
+    dif = (
+        teams_df.groupby("grupo")
+        .agg(ranking_medio=("ranking_fifa", "mean"), equipos=("equipo", lambda x: " · ".join(x)))
+        .reset_index()
+        .sort_values("ranking_medio")
+    )
 
     fig_dif = px.bar(
         dif, x="grupo", y="ranking_medio",
         title="Dificultad por grupo (ranking FIFA promedio)",
-        labels={"ranking_medio": "Ranking FIFA promedio (menor = más difícil)", "grupo": "Grupo"},
+        labels={"ranking_medio": "Ranking FIFA promedio", "grupo": "Grupo"},
         text="ranking_medio",
         color="ranking_medio",
         color_continuous_scale="RdYlGn_r",
+        hover_data={"equipos": True, "ranking_medio": ":.1f"},
     )
-    fig_dif.update_traces(texttemplate="%{text:.1f}", textposition="outside")
-    fig_dif.update_layout(showlegend=False, plot_bgcolor="rgba(0,0,0,0)",
-                          paper_bgcolor="rgba(0,0,0,0)", coloraxis_showscale=False)
+    fig_dif.update_traces(
+        texttemplate="%{text:.1f}", textposition="outside",
+        marker_line_width=0, textfont=dict(color="#cdd6f4"),
+    )
+    fig_dif.update_layout(
+        showlegend=False,
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        coloraxis_showscale=False,
+        font=dict(color="#8d99ae"),
+        title_font=dict(color="#eef2ff", size=14),
+        xaxis=dict(gridcolor="rgba(0,0,0,0)", color="#8d99ae"),
+        yaxis=dict(gridcolor="rgba(255,255,255,0.06)", color="#8d99ae"),
+    )
     st.plotly_chart(fig_dif, use_container_width=True)
 
 
@@ -411,41 +538,40 @@ elif page == "Grupos":
 # PÁGINA 4: EDA HIGHLIGHTS
 # ══════════════════════════════════════════════════════════════════════════════
 elif page == "EDA Highlights":
-    st.title("📊 EDA Highlights")
+    st.title("EDA Highlights")
     st.markdown(
-        "Los hallazgos más interesantes del análisis exploratorio sobre "
-        "**45.000+ partidos** de fútbol internacional (1872–2026)."
+        "Los hallazgos más relevantes del análisis exploratorio sobre "
+        "**49.000+ partidos** de fútbol internacional (1872–2026)."
     )
 
     GRAFICOS = ROOT / "outputs" / "graficos"
 
     charts = [
-        ("goles_por_anio.png",           "Goles promedio por partido en Mundiales (1930–2022)"),
-        ("campeones_historicos.png",      "Campeones mundiales 1930–2022"),
-        ("confederaciones_por_anio.png",  "Equipos por confederación en cada Mundial"),
-        ("resultados_por_contexto.png",   "Factor local: cancha propia vs neutral vs Mundial"),
-        ("resultados_por_era.png",        "Resultados en Mundiales por era"),
-        ("top_victorias_mundiales.png",   "Top 15 selecciones por victorias en Mundiales"),
-        ("elo_wc2026.png",               "ELO Rating — 48 equipos clasificados al WC2026"),
-        ("features_analisis.png",         "Correlación de features con el resultado"),
-        ("feature_importance.png",        "Importancia de features — GradientBoosting"),
-        ("predicciones_campeon.png",      "Probabilidades de título — resultado final"),
-        ("heatmap_probabilidades.png",    "Probabilidades por ronda — Top 20"),
-        ("clasificacion_grupos.png",      "Probabilidad de clasificar a 16avos por grupo"),
+        ("goles_por_anio.png",          "Goles promedio por partido en Mundiales (1930–2022)"),
+        ("campeones_historicos.png",     "Campeones mundiales 1930–2022"),
+        ("confederaciones_por_anio.png", "Equipos por confederación en cada Mundial"),
+        ("resultados_por_contexto.png",  "Factor local: cancha propia vs neutral vs Mundial"),
+        ("resultados_por_era.png",       "Resultados en Mundiales por era"),
+        ("top_victorias_mundiales.png",  "Top 15 selecciones por victorias en Mundiales"),
+        ("elo_wc2026.png",              "ELO Rating — 48 equipos clasificados al WC2026"),
+        ("features_analisis.png",        "Correlación de features con el resultado"),
+        ("feature_importance.png",       "Importancia de features — GradientBoosting"),
+        ("predicciones_campeon.png",     "Probabilidades de título — resultado final"),
+        ("heatmap_probabilidades.png",   "Heatmap de probabilidades por ronda — Top 20"),
+        ("clasificacion_grupos.png",     "Probabilidad de clasificar a 16avos por grupo"),
     ]
 
     for i in range(0, len(charts), 2):
         cols = st.columns(2)
         for j, (fname, title) in enumerate(charts[i:i + 2]):
             path = GRAFICOS / fname
-            if path.exists():
-                with cols[j]:
+            with cols[j]:
+                if path.exists():
                     st.markdown(f"**{title}**")
                     st.image(str(path), use_container_width=True)
-            else:
-                cols[j].info(f"Gráfico pendiente: `{fname}`")
+                else:
+                    st.info(f"Gráfico pendiente: `{fname}`")
 
-    # Scatter interactivo (HTML)
     html_path = GRAFICOS / "ranking_vs_winrate.html"
     if html_path.exists():
         st.divider()
