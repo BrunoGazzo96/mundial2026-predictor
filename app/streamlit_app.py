@@ -45,14 +45,33 @@ hr { border-color: rgba(255,255,255,0.07) !important; }
     overflow: hidden;
 }
 
-/* Quitar el delta arrow de st.metric */
 [data-testid="stMetricDelta"] svg { display: none; }
 [data-testid="stMetricDelta"] { color: #8d99ae !important; font-size: 0.78rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ── ISO codes ────────────────────────────────────────────────────────────────
+# ── Códigos ISO-2 para flagcdn.com ───────────────────────────────────────────
+ISO2_MAP = {
+    "Argentina": "ar",    "Brasil": "br",         "Francia": "fr",
+    "España": "es",       "Inglaterra": "gb-eng",  "Portugal": "pt",
+    "Países Bajos": "nl", "Bélgica": "be",         "Alemania": "de",
+    "Uruguay": "uy",      "Colombia": "co",         "Marruecos": "ma",
+    "Croacia": "hr",      "Suiza": "ch",            "Japón": "jp",
+    "México": "mx",       "Senegal": "sn",          "Ecuador": "ec",
+    "Australia": "au",    "Corea del Sur": "kr",    "Estados Unidos": "us",
+    "Irán": "ir",         "Turquía": "tr",          "Austria": "at",
+    "Canadá": "ca",       "Noruega": "no",          "Escocia": "gb-sct",
+    "Suecia": "se",       "Túnez": "tn",            "Costa de Marfil": "ci",
+    "Arabia Saudita": "sa", "Ghana": "gh",          "Egipto": "eg",
+    "Panamá": "pa",       "Paraguay": "py",         "Argelia": "dz",
+    "Irak": "iq",         "Jordania": "jo",         "Congo DR": "cd",
+    "Uzbekistán": "uz",   "Sudáfrica": "za",        "Chequia": "cz",
+    "Catar": "qa",        "Bosnia Herzegovina": "ba", "Haití": "ht",
+    "Curazao": "cw",      "Nueva Zelanda": "nz",    "Cabo Verde": "cv",
+}
+
+# ── ISO-3 para el mapa choropleth ────────────────────────────────────────────
 ISO_MAP = {
     "Argentina": "ARG", "Brasil": "BRA", "Francia": "FRA", "España": "ESP",
     "Inglaterra": "GBR", "Portugal": "PRT", "Países Bajos": "NLD",
@@ -119,31 +138,51 @@ def pct(val: float) -> str:
     return f"{val * 100:.1f}%"
 
 
+def flag_url(team: str, size: int = 20) -> str:
+    code = ISO2_MAP.get(team, "")
+    return f"https://flagcdn.com/w{size}/{code}.png" if code else ""
+
+
+def flag_img(team: str, height: int = 22) -> str:
+    url = flag_url(team, size=40)
+    if not url:
+        return ""
+    return (
+        f'<img src="{url}" '
+        f'style="height:{height}px; border-radius:3px; '
+        f'box-shadow:0 1px 4px rgba(0,0,0,0.5); display:block; margin:0 auto 6px;">'
+    )
+
+
 def stat_card(label: str, team: str, value: str, accent: str) -> str:
+    flag = flag_img(team, height=24)
     return f"""
     <div style="
         background: linear-gradient(145deg, {accent}1a 0%, {accent}08 100%);
         border: 1px solid {accent}40;
         border-radius: 14px;
-        padding: 20px 14px;
+        padding: 18px 14px;
         text-align: center;
-        min-height: 110px;
-        display: flex; flex-direction: column; justify-content: center; gap: 5px;
+        min-height: 120px;
+        display: flex; flex-direction: column; justify-content: center; gap: 4px;
     ">
         <span style="font-size:10px; color:{accent}cc; text-transform:uppercase;
                      letter-spacing:.12em; font-weight:700;">{label}</span>
-        <span style="font-size:18px; font-weight:800; color:#eef2ff; line-height:1.2;">{team}</span>
-        <span style="font-size:24px; font-weight:800; color:{accent}; line-height:1;">{value}</span>
+        {flag}
+        <span style="font-size:17px; font-weight:800; color:#eef2ff; line-height:1.2;">{team}</span>
+        <span style="font-size:22px; font-weight:800; color:{accent}; line-height:1;">{value}</span>
     </div>
     """
 
 
 def prob_bar(team_a: str, team_b: str, p_a: float, p_e: float, p_b: float) -> str:
-    """Barra proporcional de probabilidades para el simulador."""
+    fa = flag_img(team_a, height=26)
+    fb = flag_img(team_b, height=26)
     return f"""
     <div style="display:flex; gap:10px; margin:18px 0 24px;">
         <div style="flex:{p_a:.3f}; background:linear-gradient(135deg,#1b5e20,#2e7d32);
-                    border-radius:12px; padding:22px 12px; text-align:center; min-width:80px;">
+                    border-radius:12px; padding:22px 12px; text-align:center; min-width:90px;">
+            {fa}
             <div style="font-size:10px; color:#a5d6a7; text-transform:uppercase;
                         letter-spacing:.1em; font-weight:700; margin-bottom:6px;">{team_a}</div>
             <div style="font-size:32px; font-weight:800; color:#fff;">{p_a*100:.1f}%</div>
@@ -156,13 +195,24 @@ def prob_bar(team_a: str, team_b: str, p_a: float, p_e: float, p_b: float) -> st
             <div style="font-size:32px; font-weight:800; color:#cdd6f4;">{p_e*100:.1f}%</div>
         </div>
         <div style="flex:{p_b:.3f}; background:linear-gradient(135deg,#0d47a1,#1565c0);
-                    border-radius:12px; padding:22px 12px; text-align:center; min-width:80px;">
+                    border-radius:12px; padding:22px 12px; text-align:center; min-width:90px;">
+            {fb}
             <div style="font-size:10px; color:#90caf9; text-transform:uppercase;
                         letter-spacing:.1em; font-weight:700; margin-bottom:6px;">{team_b}</div>
             <div style="font-size:32px; font-weight:800; color:#fff;">{p_b*100:.1f}%</div>
         </div>
     </div>
     """
+
+
+def add_flag_col(df: pd.DataFrame, equipo_col: str = "Equipo") -> pd.DataFrame:
+    """Inserta columna de URLs de banderas al inicio del DataFrame."""
+    df = df.copy()
+    df.insert(0, " ", df[equipo_col].map(lambda e: flag_url(e, size=20)))
+    return df
+
+
+FLAG_COL_CFG = st.column_config.ImageColumn(" ", width="small")
 
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────
@@ -230,15 +280,12 @@ if page == "Dashboard":
             textposition="outside",
             textfont=dict(size=11, color="#cdd6f4"),
         ))
-
-        # Leyenda de confederaciones
         for conf, color in CONF_COLORS.items():
             if conf in top15["confederacion"].values:
                 fig_bar.add_trace(go.Bar(
                     x=[None], y=[None], name=conf,
                     marker_color=color, showlegend=True,
                 ))
-
         fig_bar.update_layout(
             title=dict(text="Top 15 candidatos al título", font=dict(size=15, color="#eef2ff")),
             xaxis=dict(
@@ -277,7 +324,8 @@ if page == "Dashboard":
             margin=dict(l=0, r=0, t=40, b=0),
             coloraxis_colorbar=dict(
                 title="Prob.", tickformat=".0%",
-                bgcolor="rgba(0,0,0,0)", tickcolor="#8d99ae", titlefont=dict(color="#8d99ae"),
+                bgcolor="rgba(0,0,0,0)", tickcolor="#8d99ae",
+                titlefont=dict(color="#8d99ae"),
             ),
             geo=dict(
                 showframe=False, showcoastlines=True,
@@ -298,25 +346,23 @@ if page == "Dashboard":
 
     rondas_cols = ["clasifica", "16avos", "octavos", "cuartos", "semis", "final", "campeon"]
     display = pred[["equipo", "confederacion", "grupo"] + rondas_cols].copy()
-
-    # Mantener como float *100 para que el sorting sea numérico
     for c in rondas_cols:
         display[c] = (display[c] * 100).round(1)
-
     display = display.rename(columns={
         **RONDAS_ES, "equipo": "Equipo", "confederacion": "Conf.", "grupo": "Gr.",
     })
+    display = add_flag_col(display)
 
     col_cfg = {
-        "Clasifica": st.column_config.ProgressColumn("Clasifica", format="%.1f%%", min_value=0, max_value=100),
-        "16avos":    st.column_config.ProgressColumn("16avos",    format="%.1f%%", min_value=0, max_value=100),
-        "Octavos":   st.column_config.ProgressColumn("Octavos",   format="%.1f%%", min_value=0, max_value=100),
-        "Cuartos":   st.column_config.ProgressColumn("Cuartos",   format="%.1f%%", min_value=0, max_value=100),
-        "Semis":     st.column_config.ProgressColumn("Semis",     format="%.1f%%", min_value=0, max_value=100),
-        "Final":     st.column_config.ProgressColumn("Final",     format="%.1f%%", min_value=0, max_value=100),
-        "Campeón":   st.column_config.ProgressColumn("Campeón",   format="%.1f%%", min_value=0, max_value=15),
+        " ":          FLAG_COL_CFG,
+        "Clasifica":  st.column_config.ProgressColumn("Clasifica",  format="%.1f%%", min_value=0, max_value=100),
+        "16avos":     st.column_config.ProgressColumn("16avos",     format="%.1f%%", min_value=0, max_value=100),
+        "Octavos":    st.column_config.ProgressColumn("Octavos",    format="%.1f%%", min_value=0, max_value=100),
+        "Cuartos":    st.column_config.ProgressColumn("Cuartos",    format="%.1f%%", min_value=0, max_value=100),
+        "Semis":      st.column_config.ProgressColumn("Semis",      format="%.1f%%", min_value=0, max_value=100),
+        "Final":      st.column_config.ProgressColumn("Final",      format="%.1f%%", min_value=0, max_value=100),
+        "Campeón":    st.column_config.ProgressColumn("Campeón",    format="%.1f%%", min_value=0, max_value=15),
     }
-
     st.dataframe(
         display.sort_values("Campeón", ascending=False),
         use_container_width=True,
@@ -380,14 +426,14 @@ elif page == "Simulador de partidos":
             st.markdown(f"**{team_a}**")
             c1, c2, c3 = st.columns(3)
             c1.metric("Confederación", info_a["confederacion"])
-            c2.metric("Ranking FIFA", f"#{info_a['ranking_fifa']}")
-            c3.metric("Prob. título", pct(pred_row_a["campeon"]) if pred_row_a is not None else "—")
+            c2.metric("Ranking FIFA",  f"#{info_a['ranking_fifa']}")
+            c3.metric("Prob. título",  pct(pred_row_a["campeon"]) if pred_row_a is not None else "—")
         with cb:
             st.markdown(f"**{team_b}**")
             c1, c2, c3 = st.columns(3)
             c1.metric("Confederación", info_b["confederacion"])
-            c2.metric("Ranking FIFA", f"#{info_b['ranking_fifa']}")
-            c3.metric("Prob. título", pct(pred_row_b["campeon"]) if pred_row_b is not None else "—")
+            c2.metric("Ranking FIFA",  f"#{info_b['ranking_fifa']}")
+            c3.metric("Prob. título",  pct(pred_row_b["campeon"]) if pred_row_b is not None else "—")
 
     st.divider()
     st.subheader("Simulación de múltiples partidos")
@@ -482,9 +528,12 @@ elif page == "Grupos":
                 mini["clasifica"] = (mini["clasifica"] * 100).round(1)
                 mini["campeon"]   = (mini["campeon"]   * 100).round(1)
                 mini.columns      = ["Equipo", "Clasifica %", "Título %"]
+                mini = add_flag_col(mini)
+
                 st.dataframe(
                     mini, hide_index=True, use_container_width=True,
                     column_config={
+                        " ": FLAG_COL_CFG,
                         "Clasifica %": st.column_config.ProgressColumn(
                             "Clasifica %", format="%.1f%%", min_value=0, max_value=100,
                         ),
@@ -507,7 +556,6 @@ elif page == "Grupos":
         .reset_index()
         .sort_values("ranking_medio")
     )
-
     fig_dif = px.bar(
         dif, x="grupo", y="ranking_medio",
         title="Dificultad por grupo (ranking FIFA promedio)",
