@@ -323,13 +323,15 @@ if page == "Dashboard":
         fig_map.update_layout(
             height=390,
             margin=dict(l=0, r=0, t=40, b=0),
-            coloraxis_colorbar=dict(
-                title="Prob.", tickformat=".0%",
-                bgcolor="rgba(0,0,0,0)", tickcolor="#8d99ae",
-                titlefont=dict(color="#8d99ae"),
-            ),
+            coloraxis=dict(colorbar=dict(
+                title=dict(text="Prob.", font=dict(color="#8d99ae")),
+                tickformat=".0%",
+                bgcolor="rgba(0,0,0,0)",
+                tickcolor="#8d99ae",
+            )),
             geo=dict(
-                showframe=False, showcoastlines=True,
+                showframe=False,
+                showcoastlines=True,
                 bgcolor="rgba(0,0,0,0)",
                 landcolor="#1e2540",
                 oceancolor="#0d1117",
@@ -468,8 +470,8 @@ elif page == "Simulador de partidos":
         fig_sim.update_traces(textposition="outside", marker_line_width=0, textfont=dict(size=13))
         fig_sim.update_layout(
             showlegend=False,
-            yaxis_title="Partidos",
-            xaxis_title="",
+            yaxis=dict(title="Partidos"),
+            xaxis=dict(title=""),
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
             font=dict(color="#8d99ae"),
@@ -577,7 +579,7 @@ elif page == "Grupos":
         showlegend=False,
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
-        coloraxis_showscale=False,
+        coloraxis=dict(showscale=False),
         font=dict(color="#8d99ae"),
         title=dict(font=dict(color="#eef2ff", size=14)),
         xaxis=dict(gridcolor="rgba(0,0,0,0)", color="#8d99ae"),
