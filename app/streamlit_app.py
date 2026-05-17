@@ -282,9 +282,11 @@ if page == "Dashboard":
         ))
         for conf, color in CONF_COLORS.items():
             if conf in top15["confederacion"].values:
-                fig_bar.add_trace(go.Bar(
+                fig_bar.add_trace(go.Scatter(
                     x=[None], y=[None], name=conf,
-                    marker_color=color, showlegend=True,
+                    mode="markers",
+                    marker=dict(color=color, size=10, symbol="square"),
+                    showlegend=True,
                 ))
         fig_bar.update_layout(
             title=dict(text="Top 15 candidatos al título", font=dict(size=15, color="#eef2ff")),
@@ -304,7 +306,6 @@ if page == "Dashboard":
                 orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                 font=dict(size=10), bgcolor="rgba(0,0,0,0)",
             ),
-            barmode="overlay",
         )
         st.plotly_chart(fig_bar, use_container_width=True)
 
