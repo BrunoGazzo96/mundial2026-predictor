@@ -223,12 +223,33 @@ page = st.sidebar.radio(
     ["Dashboard", "Simulador de partidos", "Grupos", "EDA Highlights"],
 )
 st.sidebar.divider()
-st.sidebar.markdown(
-    "**Modelo:** GradientBoosting  \n"
-    "**Simulaciones:** 10.000 torneos  \n"
-    "**Features:** ELO · Forma reciente · Ranking FIFA  \n"
-    "**Datos:** Kaggle · FIFA  \n"
+st.sidebar.link_button(
+    "Ver código en GitHub",
+    "https://github.com/BrunoGazzo96/mundial2026-predictor",
+    use_container_width=True,
 )
+st.sidebar.divider()
+st.sidebar.markdown("**Stack técnico**")
+st.sidebar.markdown("""
+<div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:4px;">
+  <span style="background:#1565C0;color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;">Python</span>
+  <span style="background:#2E7D32;color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;">scikit-learn</span>
+  <span style="background:#6A1B9A;color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;">Streamlit</span>
+  <span style="background:#B71C1C;color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;">pandas</span>
+  <span style="background:#E65100;color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;">Plotly</span>
+  <span style="background:#37474F;color:#fff;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;">NumPy</span>
+</div>
+""", unsafe_allow_html=True)
+st.sidebar.divider()
+st.sidebar.markdown("**Rendimiento del modelo**")
+st.sidebar.markdown("""
+<div style="font-size:12px; color:#8d99ae; line-height:2;">
+  Accuracy (3 clases)&nbsp;&nbsp;<b style="color:#cdd6f4;">59.4%</b><br>
+  Log-loss&nbsp;&nbsp;<b style="color:#cdd6f4;">0.91</b><br>
+  Partidos de entrenamiento&nbsp;&nbsp;<b style="color:#cdd6f4;">10.636</b><br>
+  Partidos históricos analizados&nbsp;&nbsp;<b style="color:#cdd6f4;">49.287</b>
+</div>
+""", unsafe_allow_html=True)
 
 predictions = load_predictions()
 teams_df    = load_teams()
@@ -240,10 +261,31 @@ probs_dict  = load_probs_dict()
 # ══════════════════════════════════════════════════════════════════════════════
 if page == "Dashboard":
     st.title("Mundial 2026 — Predictor")
-    st.markdown(
-        "Simulación de **10.000 torneos** completos con un modelo "
-        "GradientBoosting entrenado sobre resultados históricos de alta competencia."
-    )
+
+    # Snapshot banner
+    st.markdown("""
+    <div style="background:linear-gradient(135deg,#0f1f3d,#1a2e52);
+                border:1px solid #2d4a7a; border-left:4px solid #1565C0;
+                border-radius:8px; padding:14px 18px; margin:6px 0 18px;">
+      <span style="color:#90caf9;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">
+        Snapshot pre-torneo
+      </span>
+      <p style="color:#cdd6f4;margin:6px 0 0;font-size:13px;line-height:1.6;">
+        Predicciones calculadas el <b>16 de mayo de 2026</b>, antes del inicio del Mundial
+        (10 jun 2026). El modelo hizo su apuesta antes de que arranque el primer partido —
+        los resultados no se actualizan con el avance del torneo.
+      </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Métricas del proyecto
+    cm1, cm2, cm3, cm4 = st.columns(4)
+    cm1.metric("Partidos analizados", "49.287", "1872 – 2026")
+    cm2.metric("Simulaciones MC", "10.000", "27 segundos de cómputo")
+    cm3.metric("Accuracy del modelo", "59.4 %", "GradientBoosting 3 clases")
+    cm4.metric("Features", "10", "ELO · forma · ranking FIFA")
+
+    st.divider()
 
     if predictions is None:
         st.error("No se encontró `outputs/predicciones_2026.csv`. Corré el notebook 03.")
@@ -376,6 +418,33 @@ if page == "Dashboard":
         height=500,
         column_config=col_cfg,
     )
+
+    st.divider()
+    with st.expander("¿Cómo funciona el modelo?"):
+        st.markdown("""
+**Pipeline completo: datos históricos → predicción deployada**
+
+**1. Datos**
+49.287 partidos internacionales (1872–2026) más el ranking FIFA histórico.
+Filtrado a partidos de alta competencia (Mundiales, torneos continentales, amistosos relevantes) para reducir ruido.
+
+**2. Feature engineering**
+- **ELO Rating** calculado cronológicamente sobre toda la historia — captura jerarquía real mejor que el ranking FIFA porque pondera la dificultad del rival.
+- **Forma reciente** — promedio de goles (ventana 10) y win rate (ventana 30). Siempre con `shift(1)` para evitar data leakage: el modelo nunca ve el resultado del partido que predice.
+- **ELO diff** — diferencia entre ELO local y visitante como feature sintético.
+
+**3. Modelo**
+GradientBoosting (`n_estimators=300, max_depth=4, lr=0.05`) vs. Logistic Regression como baseline.
+Clasificación 3 clases: Victoria / Empate / Derrota del equipo local.
+Accuracy en test set: **59.4%** | Log-loss: **0.91**.
+Para fútbol, ~60% en 3 clases es el techo real — el deporte tiene ruido estructural que ningún modelo elimina.
+
+**4. Optimización de la simulación Monte Carlo**
+El cuello de botella inicial era llamar a `predict_proba()` partido por partido dentro del loop (≈950.000 llamadas al modelo para 10.000 torneos). Solución: pre-calcular los 2.256 enfrentamientos posibles en **un solo batch call** y guardarlos en un dict. La simulación solo hace `np.random.choice`. Resultado: de 10 minutos a **27 segundos**.
+
+**5. Formato WC2026**
+48 equipos · 12 grupos de 4 · Clasifican top-2 de cada grupo + mejores 8 terceros (32 al bracket) · 16avos → Octavos → Cuartos → Semis → Final → Campeón.
+        """)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
