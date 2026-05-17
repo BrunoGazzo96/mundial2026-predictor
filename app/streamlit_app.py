@@ -251,6 +251,19 @@ st.sidebar.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+st.sidebar.divider()
+st.sidebar.markdown("""
+<div style="text-align:center; padding:6px 0 2px; font-size:12px; color:#8d99ae; line-height:1.9;">
+  Hecho por<br>
+  <b style="color:#cdd6f4; font-size:13px;">Bruno Gazzo</b><br>
+  <a href="https://www.linkedin.com/in/bruno-gazzo-909161195"
+     style="color:#1565C0; text-decoration:none;">LinkedIn</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/BrunoGazzo96"
+     style="color:#1565C0; text-decoration:none;">GitHub</a>
+</div>
+""", unsafe_allow_html=True)
+
 predictions = load_predictions()
 teams_df    = load_teams()
 probs_dict  = load_probs_dict()
